@@ -15,7 +15,7 @@
 #define DEVOUT std::cerr << __LINE__ << std::endl;
 
 // Image properties
-#define SIDE 10000
+#define SIDE 8000
 #define ANTIALIASING 4
 #define LEFT (-5.0 / 3)
 #define RIGHT (5.0 / 3)
@@ -33,9 +33,9 @@
 #define RANDOM_SIZE 1000000
 
 // Generation properties
-#define SEED_ITERATIONS (1ULL * 100 * 1000 * 1000)
-#define MIN_ITERATIONS 1000000
-#define MAX_ITERATIONS 5000000
+#define SEED_ITERATIONS (1ULL * 1000 * 1000 * 1000)
+#define MIN_ITERATIONS 0
+#define MAX_ITERATIONS 1000000
 
 typedef unsigned int uint;
 typedef unsigned long long uint64;

@@ -11,6 +11,8 @@
 #include <iomanip>
 #include <iostream>
 
+#define DEVOUT std::cerr << __LINE__ << std::endl;
+
 // Image properties
 #define SIDE 10000
 #define LEFT (-5.0 / 3)
@@ -22,6 +24,7 @@
 #define CELLS_PER_SIDE 100
 #define CELL_SEED_ITERATIONS 1000
 #define CELL_ITERATIONS 1000
+#define TOTAL_CELLS (CELLS_PER_SIDE * CELLS_PER_SIDE)
 
 // Multithreading properties
 #define THREADS_NUM 8
@@ -66,9 +69,8 @@ class SeedGenerator
 public:
 	SeedGenerator()
 	{
-		const int total_cells = CELLS_PER_SIDE * CELLS_PER_SIDE;
-		interesting_cells = std::vector<bool>(total_cells, false);
-		for (int i = 0; i < total_cells; i++)
+		interesting_cells = std::vector<bool>(TOTAL_CELLS, false);
+		for (int i = 0; i < TOTAL_CELLS; i++)
 		{
 			interesting_cells[i] = is_interesting(i);
 		}
@@ -133,7 +135,40 @@ private:
 	std::vector<bool> interesting_cells;
 };
 
-void inc(std::vector<uint64>& pic, Complex x)
+template <typename T>
+struct AtomWrapper
+{
+	std::atomic<T> _a;
+
+	AtomWrapper()
+		:_a()
+	{}
+
+	AtomWrapper(const std::atomic<T> &a)
+		:_a(a.load())
+	{}
+
+	AtomWrapper(const AtomWrapper &other)
+		:_a(other._a.load())
+	{}
+
+	AtomWrapper & operator=(const AtomWrapper &other)
+	{
+		_a.store(other._a.load());
+	}
+	
+	T operator++()
+	{
+		return ++_a;
+	}
+	
+	T operator++(int)
+	{
+		return _a++;
+	}
+};
+
+void inc(std::vector<AtomWrapper<uint64>>& pic, Complex x)
 {
 	double pix_side = (RIGHT - LEFT) / SIDE;
 	uint pix_x = (uint)((x.im - LEFT) / pix_side) % SIDE;
@@ -156,11 +191,9 @@ void fill_queue(SeedGenerator& random, std::mutex& rand_mutex, std::queue<Comple
 	rand_mutex.unlock();
 }
 
-void generate(int num, std::vector<uint64>& pic, SeedGenerator& random, std::mutex& rand_mutex, std::mutex& cerr_mutex, std::vector<uint64>& distribution)
+void generate(int num, std::vector<AtomWrapper<uint64>>& pic, SeedGenerator& random, std::mutex& rand_mutex, std::mutex& cerr_mutex)
 {
 	std::vector<Complex> sequence;
-	sequence.reserve(MAX_ITERATIONS);
-
 	std::queue<Complex> rand_queue;
 
 	for (uint64 seed_it = 0; seed_it < SEED_ITERATIONS / THREADS_NUM; seed_it++)
@@ -201,7 +234,6 @@ void generate(int num, std::vector<uint64>& pic, SeedGenerator& random, std::mut
 		}
 		if (!repetitive && sequence.size() > MIN_ITERATIONS && sequence.size() != MAX_ITERATIONS)
 		{
-			distribution[sequence.size()]++;
 			for (size_t i = 0; i < sequence.size(); i++)
 			{
 				inc(pic, sequence[i]);
@@ -221,15 +253,13 @@ int main()
 	SeedGenerator random;
 	std::mutex rand_mutex;
 	std::mutex cerr_mutex;
-
+	
+	std::vector<AtomWrapper<uint64>> pic(SIDE * SIDE, std::atomic<uint64>(0));
 	std::vector<std::thread> threads(THREADS_NUM);
-	std::vector<std::vector<uint64>> pics(THREADS_NUM);
-	std::vector<std::vector<uint64>> distributions(THREADS_NUM);
+	
 	for (int i = 0; i < THREADS_NUM; i++)
 	{
-		pics[i] = std::vector<uint64>(SIDE * SIDE, 0);
-		distributions[i] = std::vector<uint64>(MAX_ITERATIONS, 0);
-		threads[i] = std::thread(generate, i, std::ref(pics[i]), std::ref(random), std::ref(rand_mutex), std::ref(cerr_mutex), std::ref(distributions[i]));
+		threads[i] = std::thread(generate, i, std::ref(pic), std::ref(random), std::ref(rand_mutex), std::ref(cerr_mutex));
 	}
 
 	for (int i = 0; i < THREADS_NUM; i++)
@@ -237,28 +267,9 @@ int main()
 		threads[i].join();
 	}
 
-	std::vector<uint64> pic(SIDE * SIDE, 0);
-	std::vector<uint64> distribution(MAX_ITERATIONS, 0);
-	for (int i = 0; i < THREADS_NUM; i++)
-	{
-		for (uint64 j = 0; j < SIDE * SIDE; j++)
-		{
-			pic[j] += pics[i][j];
-		}
-		
-		for (uint64 j = 0; j < MAX_ITERATIONS; j++)
-		{
-			distribution[j] += distributions[i][j];
-		}
-	}
-
 	std::cerr << std::endl;
 
 	FILE * output = fopen("pic.bin", "wb");
 	fwrite(&pic[0], sizeof(uint64), SIDE * SIDE, output);
 	fclose(output);
-
-	FILE * dist_output = fopen("dist.bin", "wb");
-	fwrite(&distribution[0], sizeof(uint64), MAX_ITERATIONS, dist_output);
-	fclose(dist_output);
 }

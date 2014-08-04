@@ -16,6 +16,7 @@
 
 // Image properties
 #define SIDE 10000
+#define ANTIALIASING 4
 #define LEFT (-5.0 / 3)
 #define RIGHT (5.0 / 3)
 #define TOP (-13.0 / 6)
@@ -48,6 +49,11 @@ struct Complex
 	{
 		return{ re + other.re, im + other.im };
 	}
+	
+	Complex operator-(const Complex other) const
+	{
+		return { re - other.re, im - other.im };
+	}
 
 	Complex operator*(const Complex other) const
 	{
@@ -57,6 +63,11 @@ struct Complex
 	bool operator==(const Complex other) const
 	{
 		return re == other.re && im == other.im;
+	}
+	
+	double abs() const
+	{
+		return re*re + im*im;
 	}
 };
 
@@ -172,9 +183,31 @@ struct AtomWrapper
 void inc(std::vector<AtomWrapper<uint64>>& pic, Complex x)
 {
 	double pix_side = (RIGHT - LEFT) / SIDE;
-	uint pix_x = (uint)((x.im - LEFT) / pix_side) % SIDE;
-	uint pix_y = (uint)((x.re - TOP) / pix_side) % SIDE;
-	pic[pix_y * SIDE + pix_x]++;
+	Complex pix { (x.im - LEFT) / pix_side, (x.re - TOP) / pix_side };
+	Complex cand;
+	
+	for (int delta_x = -ANTIALIASING / 2; delta_x <= ANTIALIASING / 2; delta_x++)
+	{
+		int cand_pix_x = (int)pix.im + delta_x;
+		if (cand_pix_x < 0 || cand_pix_x >= SIDE)
+		{
+			continue;
+		}
+		cand.im = cand_pix_x + 0.5;
+		for (int delta_y = -ANTIALIASING / 2; delta_y <= ANTIALIASING / 2; delta_y++)
+		{
+			int cand_pix_y = (int)pix.re + delta_y;
+			if (cand_pix_y < 0 || cand_pix_y >= SIDE)
+			{
+				continue;
+			}
+			cand.re = cand_pix_y + 0.5;
+			if ((cand - pix).abs() <= ANTIALIASING / 2)
+			{
+				pic[cand_pix_y * SIDE + cand_pix_x]++;
+			}
+		}
+	}
 }
 
 bool is_power_of_two(uint x)

@@ -2,6 +2,7 @@
 #include <mutex>
 #include <queue>
 #include <atomic>
+#include <chrono>
 #include <cstdio>
 #include <random>
 #include <thread>
@@ -248,14 +249,25 @@ void generate(int num, std::vector<AtomWrapper<uint64>>& pic, SeedGenerator& ran
 	}
 }
 
+void print(std::chrono::steady_clock::time_point& start, std::string message)
+{
+	std::cerr << std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::steady_clock::now() - start).count() << '\t' << message << std::endl;
+}
+
 int main()
 {
+	std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+	print(start, "Start");
+	
 	SeedGenerator random;
+	print(start, "Random initialized");
+	
 	std::mutex rand_mutex;
 	std::mutex cerr_mutex;
 	
 	std::vector<AtomWrapper<uint64>> pic(SIDE * SIDE, std::atomic<uint64>(0));
 	std::vector<std::thread> threads(THREADS_NUM);
+	print(start, "Memory allocated");
 	
 	for (int i = 0; i < THREADS_NUM; i++)
 	{
@@ -266,10 +278,11 @@ int main()
 	{
 		threads[i].join();
 	}
-
 	std::cerr << std::endl;
+	print(start, "Threads ended");
 
 	FILE * output = fopen("pic.bin", "wb");
 	fwrite(&pic[0], sizeof(uint64), SIDE * SIDE, output);
 	fclose(output);
+	print(start, "Data written");
 }

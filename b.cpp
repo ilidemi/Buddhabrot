@@ -183,7 +183,7 @@ struct AtomWrapper
 void inc(std::vector<AtomWrapper<uint64>>& pic, Complex x)
 {
 	double pix_side = (RIGHT - LEFT) / SIDE;
-	Complex pix { (x.im - LEFT) / pix_side, (x.re - TOP) / pix_side };
+	Complex pix { (x.re - TOP) / pix_side, (x.im - LEFT) / pix_side };
 	Complex cand;
 	
 	for (int delta_x = -ANTIALIASING / 2; delta_x <= ANTIALIASING / 2; delta_x++)

@@ -33,7 +33,7 @@
 #define RANDOM_SIZE 1000000
 
 // Generation properties
-#define SEED_ITERATIONS (1ULL * 1000 * 1000)
+#define SEED_ITERATIONS (1ULL * 100 * 1000 * 1000)
 #define MIN_ITERATIONS 0
 #define MAX_ITERATIONS 100000
 
@@ -178,9 +178,14 @@ struct AtomWrapper
 	{
 		return _a++;
 	}
+	
+	T operator+=(T val)
+	{
+		return _a.fetch_add(val);
+	}
 };
 
-void inc(std::vector<AtomWrapper<uint64>>& pic, Complex x)
+void inc(std::vector<AtomWrapper<uint64>>& pic, Complex x, uint amount)
 {
 	double pix_side = (RIGHT - LEFT) / SIDE;
 	Complex pix { (x.re - TOP) / pix_side, (x.im - LEFT) / pix_side };
@@ -204,7 +209,7 @@ void inc(std::vector<AtomWrapper<uint64>>& pic, Complex x)
 			cand.re = cand_pix_y + 0.5;
 			if ((cand - pix).abs() <= ANTIALIASING / 2)
 			{
-				pic[cand_pix_y * SIDE + cand_pix_x]++;
+				pic[cand_pix_y * SIDE + cand_pix_x] += amount;
 			}
 		}
 	}
@@ -270,7 +275,7 @@ void generate(int num, std::vector<AtomWrapper<uint64>>& pic, SeedGenerator& ran
 		{
 			for (size_t i = 0; i < sequence.size(); i++)
 			{
-				inc(pic, sequence[i]);
+				inc(pic, sequence[i], sequence.size());
 			}
 		}
 		if (seed_it % (SEED_ITERATIONS / 119 / THREADS_NUM) == 0)

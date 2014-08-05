@@ -29,7 +29,7 @@
 #define TOTAL_CELLS (CELLS_PER_SIDE * CELLS_PER_SIDE)
 
 // Multithreading properties
-#define THREADS_NUM 8
+#define THREADS_NUM 4
 #define RANDOM_SIZE 1000000
 
 // Generation properties
@@ -273,7 +273,7 @@ void generate(int num, std::vector<AtomWrapper<uint64>>& pic, SeedGenerator& ran
 				inc(pic, sequence[i]);
 			}
 		}
-		if (seed_it % (SEED_ITERATIONS / 121 / THREADS_NUM) == 0)
+		if (seed_it % (SEED_ITERATIONS / 119 / THREADS_NUM) == 0)
 		{
 			cerr_mutex.lock();
 			std::cerr << '.';

@@ -29,13 +29,13 @@
 #define TOTAL_CELLS (CELLS_PER_SIDE * CELLS_PER_SIDE)
 
 // Multithreading properties
-#define THREADS_NUM 4
+#define THREADS_NUM 4	
 #define RANDOM_SIZE 1000000
 
 // Generation properties
-#define SEED_ITERATIONS (1ULL * 1000 * 1000 * 1000)
+#define SEED_ITERATIONS (1ULL * 1000 * 1000)
 #define MIN_ITERATIONS 0
-#define MAX_ITERATIONS 1000000
+#define MAX_ITERATIONS 100000
 
 typedef unsigned int uint;
 typedef unsigned long long uint64;

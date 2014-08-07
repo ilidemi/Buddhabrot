@@ -1,16 +1,10 @@
-#include <cmath>
-#include <ctime>
 #include <mutex>
 #include <queue>
 #include <atomic>
 #include <chrono>
-#include <cstdio>
 #include <random>
 #include <thread>
 #include <vector>
-#include <cstdlib>
-#include <cstring>
-#include <iomanip>
 #include <iostream>
 
 #include "complex.h"
@@ -18,7 +12,6 @@
 #include "seed_generator.h"
 
 #define DEVOUT std::cerr << __LINE__ << std::endl;
-
 
 typedef unsigned int uint;
 typedef unsigned long long uint64;

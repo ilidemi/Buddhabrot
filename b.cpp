@@ -14,31 +14,11 @@
 #include <iostream>
 
 #include "complex.h"
+#include "settings.h"
+#include "seed_generator.h"
 
 #define DEVOUT std::cerr << __LINE__ << std::endl;
 
-// Image properties
-#define SIDE 8000
-#define ANTIALIASING 4
-#define LEFT (-5.0 / 3)
-#define RIGHT (5.0 / 3)
-#define TOP (-13.0 / 6)
-#define BOTTOM (7.0 / 6)
-
-// Sampling grid properties
-#define CELLS_PER_SIDE 100
-#define CELL_SEED_ITERATIONS 1000
-#define CELL_ITERATIONS 1000
-#define TOTAL_CELLS (CELLS_PER_SIDE * CELLS_PER_SIDE)
-
-// Multithreading properties
-#define THREADS_NUM 8
-#define RANDOM_SIZE 1000000
-
-// Generation properties
-#define SEED_ITERATIONS (1ULL * 100 * 1000 * 1000)
-#define MIN_ITERATIONS 0
-#define MAX_ITERATIONS 100000
 
 typedef unsigned int uint;
 typedef unsigned long long uint64;
@@ -47,77 +27,6 @@ bool outside(Complex x)
 {
 	return x.im < LEFT || x.im > RIGHT || x.re < TOP || x.re > BOTTOM;
 }
-
-class SeedGenerator
-{
-public:
-	SeedGenerator()
-	{
-		interesting_cells = std::vector<bool>(TOTAL_CELLS, false);
-		for (int i = 0; i < TOTAL_CELLS; i++)
-		{
-			interesting_cells[i] = is_interesting(i);
-		}
-	}
-
-	Complex generate()
-	{
-		Complex result;
-		do
-		{
-			result.re = TOP + distribution(generator) * (BOTTOM - TOP);
-			result.im = LEFT + distribution(generator) * (RIGHT - LEFT);
-		} while (!is_interesting(result));
-		return result;
-	}
-
-private:
-	bool is_interesting(Complex c)
-	{
-		int cell_x = (c.re - LEFT) / (RIGHT - LEFT) * CELLS_PER_SIDE;
-		int cell_y = (c.im - TOP) / (BOTTOM - TOP) * CELLS_PER_SIDE;
-		return interesting_cells[cell_y * CELLS_PER_SIDE + cell_x];
-	}
-	
-	bool is_interesting(int cell_number)
-	{
-		const double cell_height = (BOTTOM - TOP) / CELLS_PER_SIDE;
-		const double cell_width = (RIGHT - LEFT) / CELLS_PER_SIDE;
-		
-		int cell_x = cell_number % CELLS_PER_SIDE;
-		int cell_y = cell_number / CELLS_PER_SIDE;
-		double cell_top = TOP + cell_y * cell_height;
-		double cell_left = LEFT + cell_x * cell_width;
-		
-		bool contains_interior = false;
-		bool contains_exterior = false;
-		
-		for (int seed_it = 0; seed_it < CELL_SEED_ITERATIONS && !(contains_interior && contains_exterior); seed_it++)
-		{
-			Complex c, x;
-			c.re = cell_left + cell_width * distribution(generator);
-			c.im = cell_top + cell_height * distribution(generator);
-			x = c;
-			
-			for (int it = 0; it < CELL_ITERATIONS; it++)
-			{
-				x = x * x + c;
-				if (outside(x))
-				{
-					contains_exterior = true;
-					break;
-				}
-			}
-			contains_interior = true;
-		}
-		
-		return contains_interior && contains_exterior;
-	}
-
-	std::mt19937_64 generator;
-	std::uniform_real_distribution<double> distribution;
-	std::vector<bool> interesting_cells;
-};
 
 template <typename T>
 struct AtomWrapper

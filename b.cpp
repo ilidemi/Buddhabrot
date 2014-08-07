@@ -134,7 +134,7 @@ int main()
 	std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 	print(start, "Start");
 	
-	SeedGenerator random(std::vector<bool>(CELLS_PER_SIDE * CELLS_PER_SIDE, true));
+	SeedGenerator random; //std::vector<bool>(CELLS_PER_SIDE * CELLS_PER_SIDE, true));
 	print(start, "Random initialized");
 	
 	std::mutex rand_mutex;

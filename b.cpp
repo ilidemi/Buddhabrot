@@ -13,6 +13,8 @@
 #include <iomanip>
 #include <iostream>
 
+#include "complex.h"
+
 #define DEVOUT std::cerr << __LINE__ << std::endl;
 
 // Image properties
@@ -30,7 +32,7 @@
 #define TOTAL_CELLS (CELLS_PER_SIDE * CELLS_PER_SIDE)
 
 // Multithreading properties
-#define THREADS_NUM 4	
+#define THREADS_NUM 8
 #define RANDOM_SIZE 1000000
 
 // Generation properties
@@ -40,37 +42,6 @@
 
 typedef unsigned int uint;
 typedef unsigned long long uint64;
-
-struct Complex
-{
-	double re;
-	double im;
-
-	Complex operator+(const Complex other) const
-	{
-		return{ re + other.re, im + other.im };
-	}
-	
-	Complex operator-(const Complex other) const
-	{
-		return { re - other.re, im - other.im };
-	}
-
-	Complex operator*(const Complex other) const
-	{
-		return{ re * other.re - im * other.im, re * other.im + im * other.re };
-	}
-
-	bool operator==(const Complex other) const
-	{
-		return re == other.re && im == other.im;
-	}
-	
-	double abs() const
-	{
-		return re*re + im*im;
-	}
-};
 
 bool outside(Complex x)
 {

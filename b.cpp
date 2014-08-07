@@ -115,7 +115,7 @@ void generate(int num, std::vector<AtomWrapper<uint64>>& pic, SeedGenerator& ran
 				inc(pic, sequence[i], sequence.size());
 			}
 		}
-		if (seed_it % (SEED_ITERATIONS / 119 / THREADS_NUM) == 0)
+		if (seed_it % (SEED_ITERATIONS / 119 / THREADS_NUM) == num * SEED_ITERATIONS / 119 / THREADS_NUM / THREADS_NUM)
 		{
 			cerr_mutex.lock();
 			std::cerr << '.';

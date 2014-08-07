@@ -1,5 +1,6 @@
 #include "seed_generator.h"
 
+#include <fstream>
 #include <iostream>
 
 #include "settings.h"
@@ -8,12 +9,32 @@ extern bool outside(Complex x);
 
 SeedGenerator::SeedGenerator()
 {
-	for (int i = 0; i < TOTAL_CELLS; i++)
+	std::ifstream cells_input("interesting_cells.bin");
+	if (cells_input.good())
 	{
-		if (is_interesting(i))
+		while (!cells_input.eof())
 		{
-			interesting_cells_indices.insert(i);
+			size_t index;
+			cells_input >> index;
+			interesting_cells_indices.insert(index);
 		}
+		cells_input.close();
+	}
+	else
+	{
+		for (int i = 0; i < TOTAL_CELLS; i++)
+		{
+			if (is_interesting(i))
+			{
+				interesting_cells_indices.insert(i);
+			}
+		}
+		std::ofstream cells_output("interesting_cells.bin");
+		for (size_t index : interesting_cells_indices)
+		{
+			cells_output << index << std::endl;
+		}
+		cells_output.close();
 	}
 	next_cell = interesting_cells_indices.end();
 	

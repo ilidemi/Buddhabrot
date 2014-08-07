@@ -12,7 +12,7 @@ def convert_c(name):
     print np.max(cbresult)
     visual_max = np.percentile(cbresult.flatten(), 99.9)
     print visual_max
-    plt.imsave("%s.png" % name[:-4], cbresult, cmap='binary_r', vmin=1, vmax=visual_max)
+    plt.imsave("%s.tiff" % name[:-4], cbresult[4000:6000], cmap='binary_r', vmin=1, vmax=visual_max)
 
     
 if len(sys.argv) == 1:

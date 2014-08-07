@@ -9,6 +9,7 @@
 
 #include "complex.h"
 #include "settings.h"
+#include "atom_wrapper.hpp"
 #include "seed_generator.h"
 
 #define DEVOUT std::cerr << __LINE__ << std::endl;
@@ -20,44 +21,6 @@ bool outside(Complex x)
 {
 	return x.im < LEFT || x.im > RIGHT || x.re < TOP || x.re > BOTTOM;
 }
-
-template <typename T>
-struct AtomWrapper
-{
-	std::atomic<T> _a;
-
-	AtomWrapper()
-		:_a()
-	{}
-
-	AtomWrapper(const std::atomic<T> &a)
-		:_a(a.load())
-	{}
-
-	AtomWrapper(const AtomWrapper &other)
-		:_a(other._a.load())
-	{}
-
-	AtomWrapper & operator=(const AtomWrapper &other)
-	{
-		_a.store(other._a.load());
-	}
-	
-	T operator++()
-	{
-		return ++_a;
-	}
-	
-	T operator++(int)
-	{
-		return _a++;
-	}
-	
-	T operator+=(T val)
-	{
-		return _a.fetch_add(val);
-	}
-};
 
 void inc(std::vector<AtomWrapper<uint64>>& pic, Complex x, uint amount)
 {

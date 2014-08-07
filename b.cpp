@@ -112,7 +112,7 @@ void generate(int num, std::vector<AtomWrapper<uint64>>& pic, SeedGenerator& ran
 		{
 			for (size_t i = 0; i < sequence.size(); i++)
 			{
-				inc(pic, sequence[i], log(1 + sequence.size()));
+				inc(pic, sequence[i], sequence.size());
 			}
 		}
 		if (seed_it % (SEED_ITERATIONS / 119 / THREADS_NUM) == 0)

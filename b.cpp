@@ -184,7 +184,7 @@ int main()
 	std::vector<AtomWrapper<uint64>> pic(SIDE * SIDE, std::atomic<uint64>(0));
 	std::vector<uint64> targets;
 	{
-		uint64 curr_target = 20;
+		uint64 curr_target = MIN_SEED_ITERATIONS;
 		while (curr_target < SEED_ITERATIONS)
 		{
 			targets.push_back(curr_target);

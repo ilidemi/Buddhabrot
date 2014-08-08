@@ -16,9 +16,15 @@ def convert_c(name):
     print visual_max
     
     part_side = 8000
-    for i in xrange(0, side, part_side):
-        for j in xrange(0, side, part_side):
-            plt.imsave("%s_%03i_%03i.tiff" % (name[:-4], i/part_side, j/part_side), cbresult[i:i+part_side, j:j+part_side], cmap='binary_r', vmin=1, vmax=visual_max)
+    
+    def save(path, pic):
+        plt.imsave(path, pic, cmap='binary_r', vmin=1, vmax=visual_max)
+    if side > part_side:
+        for i in xrange(0, side, part_side):
+            for j in xrange(0, side, part_side):
+                save("%s_%03i_%03i.tiff" % (name[:-4], i/part_side, j/part_side), cbresult[i:i+part_side, j:j+part_side])
+    else:
+        save("%s.tiff" % name[:-4], cbresult)
 
     
 if len(sys.argv) == 1:

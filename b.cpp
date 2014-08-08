@@ -3,8 +3,10 @@
 #include <atomic>
 #include <chrono>
 #include <random>
+#include <string>
 #include <thread>
 #include <vector>
+#include <sstream>
 #include <iostream>
 
 #include "complex.h"
@@ -67,10 +69,26 @@ void fill_queue(SeedGenerator& random, std::mutex& rand_mutex, std::queue<Comple
 	rand_mutex.unlock();
 }
 
-void generate(int num, std::vector<AtomWrapper<uint64>>& pic, SeedGenerator& random, std::mutex& rand_mutex, std::mutex& cerr_mutex)
+void flush_pic(std::vector<AtomWrapper<uint64>>& pic, std::string filename)
+{
+	FILE * output = fopen(filename.c_str(), "wb");
+	fwrite(&pic[0], sizeof(uint64), SIDE * SIDE, output);
+	fclose(output);
+}
+
+template <typename T>
+std::string to_string(T val)
+{
+	std::ostringstream sstream;
+	sstream << val;
+	return sstream.str();
+}
+
+void generate(int num, std::vector<AtomWrapper<uint64>>& pic, SeedGenerator& random, std::mutex& rand_mutex, std::mutex& cerr_mutex, std::vector<AtomWrapper<uint>>& semaphores, const std::vector<uint64>& targets)
 {
 	std::vector<Complex> sequence;
 	std::queue<Complex> rand_queue;
+	size_t curr_target_index = 0;
 
 	for (uint64 seed_it = 0; seed_it < SEED_ITERATIONS / THREADS_NUM; seed_it++)
 	{
@@ -115,6 +133,29 @@ void generate(int num, std::vector<AtomWrapper<uint64>>& pic, SeedGenerator& ran
 				inc(pic, sequence[i], sequence.size());
 			}
 		}
+		
+		if (seed_it == targets[curr_target_index] / THREADS_NUM)
+		{
+			semaphores[curr_target_index]++;
+			if (num == 0)
+			{
+				while (semaphores[curr_target_index].load() != THREADS_NUM)
+				{
+					std::this_thread::yield();
+				}
+				flush_pic(pic, "pic_" + to_string(targets[curr_target_index]) + ".bin");
+				semaphores[curr_target_index].store(0);
+			}
+			else
+			{
+				while (semaphores[curr_target_index].load() != 0)
+				{
+					std::this_thread::yield();
+				}
+			}
+			curr_target_index++;
+		}
+		
 		if (seed_it % (SEED_ITERATIONS / 119 / THREADS_NUM) == num * SEED_ITERATIONS / 119 / THREADS_NUM / THREADS_NUM)
 		{
 			cerr_mutex.lock();
@@ -141,12 +182,28 @@ int main()
 	std::mutex cerr_mutex;
 	
 	std::vector<AtomWrapper<uint64>> pic(SIDE * SIDE, std::atomic<uint64>(0));
+	std::vector<uint64> targets;
+	{
+		uint64 curr_target = 20;
+		while (curr_target < SEED_ITERATIONS)
+		{
+			targets.push_back(curr_target);
+			targets.push_back(curr_target * 2.5);
+			targets.push_back(curr_target * 5);
+			curr_target *= 10;
+		}
+	}
+	for (uint64 i : targets)
+	{
+		std::cerr << i << std::endl;
+	}
+	std::vector<AtomWrapper<uint>> semaphores(targets.size(), std::atomic<uint>(0));
 	std::vector<std::thread> threads(THREADS_NUM);
 	print(start, "Memory allocated");
 	
 	for (int i = 0; i < THREADS_NUM; i++)
 	{
-		threads[i] = std::thread(generate, i, std::ref(pic), std::ref(random), std::ref(rand_mutex), std::ref(cerr_mutex));
+		threads[i] = std::thread(generate, i, std::ref(pic), std::ref(random), std::ref(rand_mutex), std::ref(cerr_mutex), std::ref(semaphores), std::ref(targets));
 	}
 
 	for (int i = 0; i < THREADS_NUM; i++)
@@ -156,8 +213,6 @@ int main()
 	std::cerr << std::endl;
 	print(start, "Threads ended");
 
-	FILE * output = fopen("pic.bin", "wb");
-	fwrite(&pic[0], sizeof(uint64), SIDE * SIDE, output);
-	fclose(output);
+	flush_pic(pic, "pic.bin");
 	print(start, "Data written");
 }

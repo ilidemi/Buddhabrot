@@ -16,6 +16,16 @@ struct AtomWrapper
 	AtomWrapper(const AtomWrapper &other)
 		:_a(other._a.load())
 	{}
+	
+	void store(T val) volatile noexcept
+	{
+		_a.store(val);
+	}
+	
+	T load() volatile noexcept
+	{
+		return _a.load();
+	}
 
 	AtomWrapper & operator=(const AtomWrapper &other)
 	{
@@ -36,4 +46,5 @@ struct AtomWrapper
 	{
 		return _a.fetch_add(val);
 	}
+
 };

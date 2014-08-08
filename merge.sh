@@ -1,6 +1,8 @@
 #!/bin/bash
 
-pics=$(ls -1 | grep -P 'pic_\d+_\d+\.tiff')
+base_name=$1
+scaling_factor=$2
+pics="$(ls -1 | grep -P "$base_name""_\d+_\d+\.tiff")"
 pics_count=$(echo $pics | wc -l)
 pics_side=$(echo 'sqrt('$pics_count')' | bc)
 
@@ -11,13 +13,13 @@ do
 done
 
 # Merge
-pamundice pic_%3d_%3a.ppm -down 4 -across 4 > pic.ppm
+pamundice ''$base_name''_%3d_%3a.ppm -down $pics_side -across $pics_side > ''$base_name''.ppm
 
 # Scale
-pamscale pic.ppm -reduce 2 > pic_scaled.ppm
+pamscale ''$base_name''.ppm -reduce $scaling_factor > ''$base_name''_scaled.ppm
 
 # Convert to tiff
-pamtotiff pic_scaled.ppm > pic.tiff
+pamtotiff ''$base_name''_scaled.ppm > ''$base_name''.tiff
 
 # Remove temporary stuff
-rm pic_*_*.tiff pic_*_*.ppm pic.ppm pic_scaled.ppm
+rm ''$base_name''_*_*.tiff ''$base_name''_*_*.ppm ''$base_name''.ppm ''$base_name''_scaled.ppm

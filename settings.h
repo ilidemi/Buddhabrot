@@ -1,8 +1,8 @@
 #pragma once
 
 // Image properties
-#define SIDE 28346
-#define ANTIALIASING 2
+#define SIDE 4000
+#define ANTIALIASING 4
 #define LEFT (-5.0 / 3)
 #define RIGHT (5.0 / 3)
 #define TOP (-13.0 / 6)

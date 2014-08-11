@@ -1,7 +1,7 @@
 #pragma once
 
 // Image properties
-#define SIDE 42519
+#define SIDE 36000
 #define ANTIALIASING 3
 #define LEFT (-5.0 / 3)
 #define RIGHT (5.0 / 3)
@@ -19,7 +19,7 @@
 #define RANDOM_SIZE 1000000
 
 // Generation properties
-#define MIN_SEED_ITERATIONS 200000
-#define SEED_ITERATIONS (1ULL * 2 * 1000 * 1000 * 1000 * 1000)
+#define MIN_SEED_ITERATIONS 500000000
+#define SEED_ITERATIONS (1ULL * 1000 * 1000 * 1000)
 #define MIN_ITERATIONS 0
-#define MAX_ITERATIONS 100000
+#define MAX_ITERATIONS 1000000
